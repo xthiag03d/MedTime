@@ -2,15 +2,16 @@ import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, Button, FlatList, Alert, Switch } from "react-native";
 import { supabase } from "../supabaseConfig";
 import { useRouter } from "expo-router";
-import { scheduleNotification, cancelNotification } from "../hooks/notifications"; // Importe a função de cancelamento também
+import { scheduleNotification, cancelNotification } from "../hooks/notifications";
+import { useFocusEffect } from '@react-navigation/native';
 
 type Medicine = {
   id: string;
   nome: string;
   dose: string;
-  schedule: string;  // Hora programada para o medicamento
+  schedule: string;
   user_id: string;
-  notification_sent: boolean; // Adicionei essa propriedade para controlar se a notificação foi enviada
+  notification_sent: boolean;
 };
 
 export default function MedicinesScreen() {
@@ -18,29 +19,70 @@ export default function MedicinesScreen() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
+  // Recupera os medicamentos do usuário
+  const fetchMedicines = async () => {
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+
+    if (userError || !userData?.user) {
+      Alert.alert("Erro", "Usuário não autenticado.");
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("medicines")
+      .select("*")
+      .eq("user_id", userData.user.id);
+
+    if (error) {
+      Alert.alert("Erro", error.message);
+    } else {
+      setMedicines(data as Medicine[]);
+    }
+  };
+
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchMedicines(); // Recarrega os medicamentos ao voltar para a tela
+    }, [])
+  );
+
   useEffect(() => {
-    const fetchMedicines = async () => {
-      const { data: userData, error: userError } = await supabase.auth.getUser();
-
-      if (userError || !userData?.user) {
-        Alert.alert("Erro", "Usuário não autenticado.");
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from("medicines")
-        .select("*")
-        .eq("user_id", userData.user.id);
-
-      if (error) {
-        Alert.alert("Erro", error.message);
-      } else {
-        setMedicines(data as Medicine[]);
-      }
-    };
-
     fetchMedicines();
   }, []);
+
+  // Função para adicionar medicamento com base no email
+  const handleAddMedicine = async (nome: string, dose: string, schedule: string) => {
+    setLoading(true);
+    
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+
+    if (userError || !userData?.user) {
+      Alert.alert("Erro", "Usuário não autenticado.");
+      setLoading(false);
+      return;
+    }
+
+    const user_id = userData.user.id;
+
+    const { error } = await supabase
+      .from("medicines")
+      .insert([{
+        nome,
+        dose,
+        schedule,
+        user_id,
+        notification_sent: false, // Definindo o estado inicial das notificações
+      }]);
+
+    if (error) {
+      Alert.alert("Erro", error.message);
+    } else {
+      Alert.alert("Sucesso", "Medicamento adicionado com sucesso!");
+      fetchMedicines(); // Atualiza a lista de medicamentos após adição
+    }
+
+    setLoading(false);
+  };
 
   const handleDelete = async (id: string) => {
     Alert.alert(
@@ -87,8 +129,14 @@ export default function MedicinesScreen() {
       return;
     }
 
-    // Inverte o estado de `notification_sent`
     const updatedNotificationSent = !medicine.notification_sent;
+
+    // Atualize a lista de medicamentos localmente
+    setMedicines((prevMedicines) =>
+      prevMedicines.map((med) =>
+        med.id === medicine.id ? { ...med, notification_sent: updatedNotificationSent } : med
+      )
+    );
 
     const { error } = await supabase
       .from("medicines")
@@ -99,15 +147,13 @@ export default function MedicinesScreen() {
       Alert.alert("Erro", error.message);
     } else {
       if (updatedNotificationSent) {
-        // Construir a data e hora com base no horário programado
         const [hours, minutes] = medicine.schedule.split(":").map(Number);
         const now = new Date();
-        now.setHours(hours, minutes, 0, 0); // Define a hora, minuto, segundo e milissegundo
+        now.setHours(hours, minutes, 0, 0);
 
         if (isNaN(now.getTime())) {
           Alert.alert("Erro", `Horário inválido para ${medicine.nome}`);
         } else {
-          // A notificação será agendada para todos os dias no mesmo horário
           scheduleNotification(medicine.nome, `Hora de tomar: ${medicine.dose}`, now);
           Alert.alert(
             "Notificação Agendada",
@@ -115,7 +161,6 @@ export default function MedicinesScreen() {
           );
         }
       } else {
-        // Cancelar a notificação se estiver desabilitada
         cancelNotification(medicine.id);
         Alert.alert("Notificação Desabilitada", `A notificação para ${medicine.nome} foi desabilitada.`);
       }
@@ -144,7 +189,7 @@ export default function MedicinesScreen() {
         <Switch
           value={item.notification_sent}
           onValueChange={() => handleToggleNotification(item)}
-          disabled={loading}  // Mantém o switch desabilitado durante o processo de carregamento
+          disabled={loading}
         />
       </View>
     </View>

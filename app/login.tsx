@@ -30,7 +30,7 @@ const LoginScreen = () => {
   return (
     <View style={styles.container}>
       {/* Logo */}
-      <Image source={require('../assets/images/logo.png')} style={styles.logo} />
+      <Image source={require('../assets/images/logo2.png')} style={styles.logo} />
 
       {/* Título de boas-vindas */}
       <Text style={styles.title}>Bem-vindo!</Text>

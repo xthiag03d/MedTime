@@ -1,9 +1,11 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, Alert, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TextInput, Alert, TouchableOpacity, StyleSheet, Image } from "react-native";
 import { supabase } from "../supabaseConfig";
+import { useRouter } from "expo-router";
 
 const RegisterScreen = ({ navigation }: any) => {
   const [email, setEmail] = useState("");
+  const router = useRouter();
   const [password, setPassword] = useState("");
 
   const handleSignUp = async () => {
@@ -28,6 +30,12 @@ const RegisterScreen = ({ navigation }: any) => {
 
   return (
     <View style={styles.container}>
+      {/* Logo da aplicação */}
+      <Image
+        source={require("../assets/images/logo2.png")} // Caminho para o logo
+        style={styles.logo}
+      />
+      
       <Text style={styles.title}>Criar Conta</Text>
 
       <TextInput
@@ -49,8 +57,8 @@ const RegisterScreen = ({ navigation }: any) => {
         <Text style={styles.buttonText}>Cadastrar</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-        <Text style={styles.link}>Já tem uma conta? Entre aqui</Text>
+      <TouchableOpacity onPress={() => router.push("/login")}>
+        <Text style={styles.link}>Já tem uma conta? Clique aqui para logar!</Text>
       </TouchableOpacity>
     </View>
   );
@@ -63,6 +71,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 20,
     backgroundColor: "#f5f5f5", // Fundo claro
+  },
+  logo: {
+    width: 120, // Ajuste o tamanho do logo conforme necessário
+    height: 120,
+    marginBottom: 40, // Espaçamento abaixo do logo
   },
   title: {
     fontSize: 32,
