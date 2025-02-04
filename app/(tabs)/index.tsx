@@ -1,74 +1,113 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+import { View, Text, Button, StyleSheet, ScrollView, Image } from "react-native";
+import { useRouter } from "expo-router";
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+export default function HomePage() {
+  const router = useRouter();
 
-export default function HomeScreen() {
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
+    <ScrollView style={styles.container}>
+      {/* Logo */}
+      <View style={styles.logoContainer}>
         <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
+          source={require("../../assets/images/logo.png")}  // Altere para o caminho do seu logo
+          style={styles.logo}
         />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12'
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+      </View>
+
+      <Text style={styles.headerText}>Bem-vindo ao MedTime!</Text>
+      <Text style={styles.subHeaderText}>
+        Gerencie seus remédios e lembretes de forma simples e eficiente.
+      </Text>
+
+      {/* Cartões de ação */}
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Adicione um novo remédio</Text>
+        <Text style={styles.cardDescription}>
+          Mantenha o controle das doses e horários para não esquecer de tomar.
+        </Text>
+        <Button
+          title="Adicionar Remédio"
+          onPress={() => router.push("/add-medicine")}
+          color="#4A90E2" // Cor personalizada para o botão
+        />
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Veja seus remédios cadastrados</Text>
+        <Text style={styles.cardDescription}>
+          Acesse facilmente a lista de remédios que você já cadastrou.
+        </Text>
+        <Button
+          title="Ver Remédios"
+          onPress={() => router.push("/medicines")}
+          color="#4A90E2"
+        />
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Gerencie seu perfil</Text>
+        <Text style={styles.cardDescription}>
+          Edite suas preferências e configurações de notificações.
+        </Text>
+        <Button
+          title="Editar Perfil"
+          onPress={() => router.push("/profile")}
+          color="#4A90E2"
+        />
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flex: 1,
+    backgroundColor: "#f4f4f9", // Cor de fundo suave
+    paddingHorizontal: 20,
+    paddingVertical: 10,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  logoContainer: {
+    alignItems: "center",
+    marginBottom: 20,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  logo: {
+    width: 120,  // Tamanho do logo
+    height: 120, // Tamanho do logo
+    resizeMode: "contain", // Garantir que o logo não distorça
+  },
+  headerText: {
+    fontSize: 30,  // Tamanho maior para o título
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 15,
+    color: "#4A90E2",
+  },
+  subHeaderText: {
+    fontSize: 16,
+    textAlign: "center",
+    marginBottom: 30,
+    color: "#555",
+  },
+  card: {
+    backgroundColor: "#fff",
+    borderRadius: 12, // Arredondar mais os cantos
+    padding: 20,
+    marginBottom: 25,
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 5, // Sombra para dispositivos Android
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 10,
+    color: "#333",
+  },
+  cardDescription: {
+    fontSize: 14,
+    marginBottom: 15,
+    color: "#777",
   },
 });

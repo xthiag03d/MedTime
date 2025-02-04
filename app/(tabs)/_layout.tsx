@@ -1,45 +1,44 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
-import { Platform } from 'react-native';
+import { useEffect, useState } from "react";
+import { Stack, useRouter } from "expo-router";
+import { supabase } from "../../supabaseConfig";
+import { registerForPushNotificationsAsync } from "../../hooks/notifications"; // Importe a função de notificações
 
-import { HapticTab } from '@/components/HapticTab';
-import { IconSymbol } from '@/components/ui/IconSymbol';
-import TabBarBackground from '@/components/ui/TabBarBackground';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
+export default function Layout() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [pushToken, setPushToken] = useState<string | null>(null);
+  const router = useRouter();
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!data?.session) {
+        // Se não estiver logado, redireciona para a tela de login
+        router.replace("/login");
+      } else {
+        // Se estiver logado, permite que a navegação aconteça
+        setIsLoggedIn(true);
+        
+        // Solicitar permissão de notificações e obter o token
+        const token = await registerForPushNotificationsAsync();
+        if (token) {
+          setPushToken(token); // Armazena o token recebido
+        }
+      }
+    };
 
+    checkAuth();
+  }, [router]);
+
+  // Caso o usuário não esteja logado, você pode mostrar algo enquanto a verificação acontece
+  if (!isLoggedIn) {
+    return null; // Ou pode renderizar um "Carregando..." ou algo para a UX
+  }
+
+  // Renderiza o conteúdo da navegação, se o usuário estiver logado
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
-        tabBarButton: HapticTab,
-        tabBarBackground: TabBarBackground,
-        tabBarStyle: Platform.select({
-          ios: {
-            // Use a transparent background on iOS to show the blur effect
-            position: 'absolute',
-          },
-          default: {},
-        }),
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="explore"
-        options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
-        }}
-      />
-    </Tabs>
+    <>
+      {/* Aqui você pode mostrar notificações ou o que achar necessário */}
+      <Stack />
+    </>
   );
 }
